@@ -1,4 +1,5 @@
 const mongoose = require("mongoose"); //importation mongoose
+const { Schema, model } = require('mongoose');
 const bcrypt = require('bcryptjs');
 
 const userSchema = new mongoose.Schema({
@@ -19,6 +20,8 @@ const userSchema = new mongoose.Schema({
     password:{
         type:String,
         required:true,
+        minlength:8,
+    
         
     },
     confirmPassword:{
@@ -38,8 +41,9 @@ userSchema.pre('save', async function (next) {
     try {
         const salt = await bcrypt.genSalt(12)
         this.password = await bcrypt.hash(this.password, salt)
-    } catch (error) {
-        return next(error)
+        this.confirmPassword = await bcrypt.hash(this.confirmPassword, salt)
+    } catch (error) { 
+        return next (error)
     }
 })
 

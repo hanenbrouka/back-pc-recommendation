@@ -1,6 +1,7 @@
 const mongoose = require("mongoose"); //importation mongoose
+const { Schema, model } = require('mongoose')
 
-const userProfileSchema = new mongoose.Schema(
+const UserProfileSchema = new mongoose.Schema(
   {
     firstName: {
       type: String,
@@ -25,5 +26,5 @@ const userProfileSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-const userProfile = mongoose.model("User", userProfileSchema);
-module.exports = userProfile;
+const UserProfile = mongoose.model("UserProfile", UserProfileSchema);
+module.exports = UserProfile;
