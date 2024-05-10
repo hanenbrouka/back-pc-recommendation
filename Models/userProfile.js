@@ -3,6 +3,10 @@ const { Schema, model } = require('mongoose')
 
 const UserProfileSchema = new mongoose.Schema(
   {
+    user:{ //dependance de uml (profil marbout b user mou3ayn)
+      type:mongoose.Schema.Types.ObjectId, 
+      ref:'User'
+    },
     firstName: {
       type: String,
       required: true,

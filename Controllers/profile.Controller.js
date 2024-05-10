@@ -1,4 +1,6 @@
-const userProfile = require("../Models/userProfile");
+const UserProfile = require("../Models/userProfile");
+const User = require("../Models/User");
+
 const { validationResult } = require("express-validator");
 
 
@@ -14,19 +16,20 @@ exports.ajoutProfile = async (req, res) => {
     }
 
     // Vérifier si un profil existe pour cet utilisateur
-    const existingProfile = await Profile.findOne({ user: userId });
+    const existingProfile = await UserProfile.findOne({ user: userId });
     if (existingProfile) {
       return res.status(200).json({ message: "Profil existant pour cet utilisateur" });
     }
 
     // Récupérer les informations de l'utilisateur depuis la base de données
     const user = await User.findOne({ _id: userId }).select("-password");
-    if (!user) {
-      return res.status(404).json({ message: "Utilisateur non trouvé" });
+    if (!user) { 
+      return res.status(404).json({ message: "Utilisateur non trouvé" }); 
     }
+
    
     // Créer un nouveau profil pour l'utilisateur
-    const newProfile = new userProfile({
+    const newProfile = new UserProfile({
       firstName: user.firstName,
       lastName: user.lastName,
       email: user.email,
@@ -39,6 +42,8 @@ exports.ajoutProfile = async (req, res) => {
     res.status(500).json({ message: "Erreur lors de la création du profil utilisateur" });
   }
 };
+
+
 
 
 

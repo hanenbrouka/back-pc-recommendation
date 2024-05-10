@@ -7,7 +7,7 @@ exports.getAllUsers = async (req, res) => {
   try {
     const userProfiles = await UserProfile.find();
     res.status(200).json(User);
-    if (userProfile.length < 1) {
+    if (UserProfile.length < 1) {
       res.status(404).json({ msg: "Aucun utilisateur trouvé" });
     } else {
       res.status(200).json(userProfiles);
@@ -23,15 +23,18 @@ exports.getAllUsers = async (req, res) => {
 // modifier un utilisateur (par l'admin)
 exports.updateUser = async (req, res) => {
   const userId = req.params.userId;
-  const newData = req.body;
- 
+  const { firstName, lastName, email } = req.body; 
+  const profilData ={}
+  if ( firstName) profilData.firstName=firstName
+  if ( lastName) profilData.firstName=lastName
+  if ( email) profilData.firstName=email
   try {
     let userProfile = await UserProfile.findOne({ user: userId });
     let user = await  User.findById(userId).select("-password");
-    if (!userProfile || !user) {
+    if ( !user) {
       return res.status(404).json({ message: "Utilisateur non trouvé" });
     }
-    if ((userProfile.user.toString()!== user._id.toString())|| user.role !== "admin"){
+    if ( user?.role === "admin"){
       return res.status(403).json({ message: "action interdite" });
     }
 
@@ -39,16 +42,16 @@ exports.updateUser = async (req, res) => {
     // Mise à jour des données de l'utilisateur
     userProfile = await UserProfile.findOneAndUpdate(
       { user: userId },
-      { $set: newData },
+      { $set: profilData },
       { new: true }
     );
     user = await User.findOneAndUpdate(
       { _id: userId },
-      { $set: newData },
+      { $set: profilData },
       { new: true }
     );
-    await userProfile.save();
-    await user.save();
+    await userProfile?.save();
+    await user?.save();
 
     res.status(200).json({ message: "Utilisateur mis à jour avec succès" });
   } catch (error) {
@@ -70,8 +73,8 @@ exports.deleteUser = async (req, res) => {
       return res.status(404).json({ message: "Utilisateur non trouvé" });
     }
 
-    await user.findOneAndDelete({ _id: userId });
-    await userProfile.findOneAndDelete({ user: userId });
+    await User.findOneAndDelete({ _id: userId });
+    await UserProfile.findOneAndDelete({ user: userId });
     res.status(200).json({ message: "Utilisateur supprimé avec succès" });
   } catch (error) {
     console.error("Erreur lors de la suppression de l'utilisateur :", error);

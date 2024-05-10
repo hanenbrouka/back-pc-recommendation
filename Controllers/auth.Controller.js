@@ -2,6 +2,9 @@ const User = require("../Models/User");
 const auth = require("../Middlewares/auth");
 const { validationResult } = require("express-validator");
 const { generateToken } = require("../Utils/generateToken");
+const {sendResetPasswordEmail} = require( '../Utils/sendPasswordRecovery');
+const bcrypt= require('bcryptjs');
+
 
 // Méthode de contrôleur pour l'inscription
 exports.signup = async (req, res) => {
@@ -67,17 +70,22 @@ exports.login = async (req, res) => {
       .json({ errors: errors.array({ onlyFirstError: true }) });
   }
   const { email, password } = req.body;
-
+ 
   try {
     // Vérifier si l'utilisateur existe dans la base de données
     const user = await User.findOne({ email });
-
+    
     if (!user) {
       return res
         .status(404)
         .json({ message: "No account with this email has been registered." });
     }
-
+    const isMatch=bcrypt.compare(password,user.password)
+    if(!isMatch) {
+      return res
+        .status(404)
+        .json({ message: "password is not correct." });
+    }
     const payload = {
       user: {
         id: user.id,
@@ -85,7 +93,7 @@ exports.login = async (req, res) => {
         role: user.role
       },
     };
-    const token = await generateToken(payload);
+    const token = generateToken(payload);
     // Authentification réussie
     res.status(200).json({ message: "Connexion réussie",token });
   } catch (error) {
@@ -93,6 +101,21 @@ exports.login = async (req, res) => {
     res.status(500).json({ message: "Erreur lors de la connexion" });
   }
 };
+//get auth user
+exports.authenticatedUser= async (req, res) => {
+ try {
+  const user = await User.findOne({_id:req.user.id})
+  if(!user){
+    return res
+    .status(404)
+    .json({ message: "cannot find user." });
+  }
+  res.status(200).json({ message: "Connexion réussie",user });
+ } catch (error) {
+  console.error("Erreur lors de la connexion :", error);
+  res.status(500).json({ message: "Erreur lors de la connexion" });
+}
+}
 //forgot Password
 exports.sendForgetPasswordEmail = async (req, res) => {
   const errors = validationResult(req);
@@ -117,7 +140,7 @@ exports.sendForgetPasswordEmail = async (req, res) => {
       },
     };
     const token = generateToken(payload);
-    mailer.send( req.body["email"], token);
+    sendResetPasswordEmail( req.body["email"], token);
     res.status(200).json({ msg: "Email sent!" });
   } catch (error) {
     console.error("fff", error.message);
@@ -127,6 +150,8 @@ exports.sendForgetPasswordEmail = async (req, res) => {
 
 //update password (forgot password)
 exports.updateForgotPassword = async (req, res) => {
+ 
+
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res
@@ -148,56 +173,64 @@ exports.updateForgotPassword = async (req, res) => {
         message: "Cannot find user with those credentials!",
       });
     }
+    
     const salt = await bcrypt.genSalt(12);
     const newpassword = await bcrypt.hash(req.body.password, salt);
-    const result = await User.findByIdAndUpdate(verif.user.id, {
+    const result = await User.findByIdAndUpdate(verif.user.id, { 
       $set: { password: newpassword },
-    }).select("-password");
+    }).select("-password"); 
     res.send({ status: true, message: "password updated successfully" });
   } catch (error) {
     console.log(error);
   }
 };
-// Méthode de contrôleur pour mettre à jour les données de l'utilisateur
-// exports.updateUser = async (req, res) => {
-//   const errors = validationResult(req);
-//   if (!errors.isEmpty()) {
-//     return res
-//       .status(400)
-//       .json({ errors: errors.array({ onlyFirstError: true }) });
-//   }
-//   try {
-//     const { userId, newData } = req.body;
 
-//     // Vérifier si l'utilisateur existe dans la base de données
-//     const user = await User.findById(Id);
-//     if (!user) {
-//       return res.status(404).json({ message: "Utilisateur non trouvé" });
-//     }
+//modifier password mel user 
+exports.modifPassword = async (req, res) => {
+  const { currentPassword, newPassword, confirmPassword  } = req.body;
+  
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res
+      .status(400)
+      .json({ errors: errors.array({ onlyFirstError: true }) });
+  }
+  try {
+   
+    const user = await User.findOne({ _id: req.user.id });
+    if (!user) {
+      return res.status(400).json({
+        status: false,
+        message: "Cannot find user with those credentials!",
+      });
+    }
+    const isMatch=bcrypt.compare(currentPassword,user.password)
+    if(!isMatch) {
+      return res
+        .status(404)
+        .json({ message: "password is not correct." });
+    }// Vérifier si les mots de passe correspondent
+    if (password !== confirmPassword) {
+    return res
+    .status(400)
+    .json({ message: "Enter the same password twice for verification." });
+    }
 
-//     // Mettre à jour les données de l'utilisateur
-//     const isUpdated = await user.updateUserData(newData);
-//     if (isUpdated) {
-//       return res.status(200).json({ message: "Données utilisateur mises à jour avec succès" });
-//     } else {
-//       return res.status(500).json({ message: "Erreur lors de la mise à jour des données utilisateur" });
-//     }
-//   } catch (error) {
-//     console.error("Erreur lors de la mise à jour des données utilisateur :", error);
-//     console.log("Erreur lors de la mise à jour des données utilisateur :", error);
-//     res.status(500).json({ message: "Erreur lors de la mise à jour des données utilisateur" });
-//   }
-// };
+   const salt = await bcrypt.genSalt(12);
+   const newpassword = await bcrypt.hash(newPassword, salt);
+  const result = await User.findByIdAndUpdate(req.user.id, { 
+  $set: { password: newpassword },
+    }).select("-password"); 
+    res.send({ status: true, message: "password updated successfully" });
+  } catch (error) {
+    console.log(error);
+  }
+};
 
-//  déconnecter l'utilisateur
-// exports.logout = async (req, res) => {
-//   try {
-//     // Par exemple, si vous utilisez JWT, vous pouvez simplement effacer le cookie JWT
-//     res.clearCookie("jwtToken"); // Assurez-vous que le nom du cookie correspond à celui que vous utilisez
 
-//     res.status(200).json({ message: "Déconnexion réussie" });
-//   } catch (error) {
-//     console.error("Erreur lors de la déconnexion :", error);
-//     res.status(500).json({ message: "Erreur lors de la déconnexion" });
-//   }
-// };
+
+
+ 
+
+
+

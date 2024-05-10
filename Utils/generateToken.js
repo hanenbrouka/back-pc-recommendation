@@ -1,15 +1,23 @@
-const jwt = require('jsonwebtoken')
+const jwt = require('jsonwebtoken');
 
- function generateToken(payload) {
-
-  return jwt.sign(payload, process.env.JWT_reset_pass, { expiresIn: process.env.JWT_EXPIRES_IN })}
-async function verifToken(token) {
-    try {
-      return await jwt.verify(token, process.env.JWT_reset_pass, { expiresIn: process.env.JWT_EXPIRES_IN })
-  
-    } catch (error) {
-      return false;
-    }
+function generateToken(payload) {
+  try {
+    const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN });
+    return token;
+  } catch (error) {
+    console.error('Error generating token:', error);
+    return null;
   }
+}
 
-  module.exports = { generateToken, verifToken };
+async function verifyToken(token) {
+  try {
+    const decoded = await jwt.verify(token, process.env.JWT_SECRET);
+    return decoded;
+  } catch (error) {
+    console.error('Error verifying token:', error);
+    return null;
+  }
+}
+
+module.exports = { generateToken, verifyToken };
