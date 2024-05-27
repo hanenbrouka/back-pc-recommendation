@@ -1,120 +1,80 @@
-const User = require("../Models/User");
 const auth = require("../Middlewares/auth");
 const { validationResult } = require("express-validator");
 const { generateToken } = require("../Utils/generateToken");
+const Admin = require('../Models/admin');
+const nodemailer = require("nodemailer")
+const bcrypt = require('bcryptjs');
 
-
+// Fonction pour ajouter un admin
 exports.addAdmin = async (req, res) => {
-  const { firstName, lastName, email, password, confirmPassword } = req.body;
-
   try {
-     // Vérifier si l'utilisateur est un super admin (dans un vrai système, cela serait plus sécurisé)
-     const IsSuperAdmin = req.headers.authorization === 'SuperAdminToken';
+    const { email, password } = req.body;
+  
+    // Vérifier si l'admin existe déjà
+    let admin = await Admin.findOne({ email });
+    if (admin) {
+      return res.status(400).json({ msg: 'Cet admin existe déjà' });
+    }
 
-     if (!isAdmin) {
-       return res.status(403).json({ message: 'Access denied. Only super admin can add an admin.' });
-     }
- 
-      // Check if the user already exists
-      let user = await User.findOne({ email });
-
-      if (user) {
-          return res.status(400).json({ message: 'User already exists' });
+    // Créer un nouvel objet admin
+    admin = new Admin({
+      email,
+      password
+    });
+    // Sauvegarder l'admin dans la base de données
+    await admin.save();
+    // Configurer le transporteur SMTP pour nodemailer
+    const transporter = nodemailer.createTransport({
+      service: 'Gmail',
+      auth: {
+        user: 'votre_email@gmail.com',
+        pass: 'votre_mot_de_passe'
       }
+    });
 
-      // Create a new user object
-      user = new User({
-          firstName,
-          lastName,
-          email,
-          password,
-          confirmPassword,
-          role: 'admin' // Set the role to 'admin'
-      });
+    // Options pour l'email
+    const mailOptions = {
+      from: 'envastenvast@hotmail.com',
+      to: email,
+      subject: 'Nouveau compte administrateur créé',
+      text: `Votre compte administrateur a été créé avec succès. Email: ${email}, Mot de passe: ${password}`
+    };
 
-      // Save the user to the database
-      await user.save();
+    // Envoyer l'email
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.log(error);
+      } else {
+        console.log('Email envoyé: ' + info.response);
+      }
+    });
 
-      res.status(201).json({ message: 'Admin created successfully' });
-  } catch (error) {
-      console.error(error);
-      res.status(500).json({ message: 'Server Error' });
+    res.status(201).json({ msg: 'Admin ajouté avec succès' });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Erreur serveur');
   }
 };
 
-
-//get auth admin
-exports.authenticatedUser= async (req, res) => {
+// Fonction pour supprimer un admin par son ID
+exports.DeleteAdmin = async (req, res) => {
+  const adminId = req.params.userId;
   try {
-   const user = await user.findOne({_id:req.user.id})
-   if(user.role==='admin'){
-     return res
-     .status(404)
-     .json({ message: "un admin ne peut pas gérer un autre admin." });
-   }
-   res.status(200).json({ message: "Connexion réussie",user });
-  } catch (error) {
-   console.error("Erreur lors de la connexion :", error);
-   res.status(500).json({ message: "Erreur lors de la connexion" });
- }
- }
+    // Vérifier si l'admin existe
+    let admin = await Admin.findById(adminId);
+    if (!admin) {
+      return res.status(404).json({ msg: 'Admin non trouvé' });
+    }
 
-// modifier un admin (par super admin)
-exports.updateAdmin = async (req, res) => {
- const userId = req.params.userId;
- const newData = {};
+    // Supprimer l'admin de la base de données
+    await Admin.findByIdAndDelete(adminId);
 
- try {
-  
-   let user = await  User.findById(userId).select("-password");
-   if (!user) {
-     return res.status(404).json({ message: "User not found " });
-   }
-   if ((user.toString()!== user._id.toString())|| user.role !== "superAdmin"){
-     return res.status(403).json({ message: "action interdite" });
-   }
-
-   
-   // Mise à jour des données de l'admin
-  
-   user = await User.findOneAndUpdate(
-     { _id: userId },
-     { $set: newData },
-     { new: true }
-   ); 
-  
-   await user.save();
-
-   res.status(200).json({ message: " User updated successfully" });
- } catch (error) {
-   console.error("Error updating admin:", error);
-   res
-     .status(500)
-     .json({ message: "Error updating admin" });
- }
-};
-
-// supprimer un utilisateur (par l'admin)
-exports.deleteAdmin = async (req, res) => {
- const userId = req.params.userId;
-
- try {
-   const user = await User.findById(userId);
-   if (!user) {
-     return res.status(404).json({ message: "admin not found" });
-   }
-   if ((user.toString()!== user._id.toString())|| user.role !== "superAdmin"){
-    return res.status(403).json({ message: "action interdite" });
+    res.json({ msg: 'Admin supprimé avec succès' });
+  } catch (err) {
+    console.error(err.message);
+    res
+    .status(500)
+    .json({ message: "Erreur lors de la suppression de l'admin" });
   }
-
-   await user.findOneAndDelete({ _id: userId });
-   res.status(200).json({ message: "Admin deleted successfuly" });
- } catch (error) {
-   console.error("Error deleted admin :", error);
-   res
-     .status(500)
-     .json({ message: "Erro deleted admin" });
- }
 };
-
 

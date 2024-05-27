@@ -39,8 +39,8 @@ const sendResetPasswordEmail = async (email, token) => {
               box-shadow: 0 0 10px rgba(0,0,0,0.1);
             }
             .header {
-              background-color: #007bff;
-              color: #fff;
+              background: #ffe6a6;
+              color: #3c413f !important;
               padding: 15px;
               text-align: center;
               border-top-left-radius: 8px;
@@ -59,8 +59,8 @@ const sendResetPasswordEmail = async (email, token) => {
             }
             .button {
               display: inline-block;
-              background-color: #007bff;
-              color: #fff !important;
+              background: #ffe6a6;
+              color: #3c413f !important;
               text-decoration: none;
               padding: 10px 20px;
               border-radius: 5px;
@@ -76,16 +76,16 @@ const sendResetPasswordEmail = async (email, token) => {
         <body>
           <div class="container">
             <div class="header">
-              <h1>ENVAST</h1>
+              <h1>PC RECOMMENDATION</h1>
             </div>
             <div class="content">
               <p>Hello,</p>
-              <p>You've requested to reset your password for ENVAST. Please click the button below to reset your password.</p>
+              <p>You've requested to reset your password for PC RECOMMENDATION. Please click the button below to reset your password.</p>
               <a href="http://localhost:3000/reset-password/${token}" class="button">Reset Password</a>
             </div>
             <div class="footer">
               <p>If you didn't request this, you can safely ignore this email.</p>
-              <p>&copy; 2023 ENVAST. All rights reserved.</p>
+              <p>&copy; 2024 ENVAST. All rights reserved.</p>
             </div>
           </div>
         </body>

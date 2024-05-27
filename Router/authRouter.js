@@ -3,7 +3,6 @@ const router = express.Router();
 const { signup,login,updateForgotPassword,sendForgetPasswordEmail, logout, authenticatedUser } = require("../Controllers/auth.Controller");
 const auth = require("../Middlewares/auth")
 const {updateUser,deleteUser,getAllUsers} = require("../Controllers/User.Controller");
-const {addAdmin} = require("../Controllers/Admin.Controller");
 const { validateSignup, validateLogin } = require("../Utils/validation/userValidation");
 
 
@@ -21,17 +20,12 @@ router.get('/', auth,authenticatedUser)
 // Route pour la déconnection
 // router.post("/logout", logout);
 
-
-
-
 //gérer user
 // Routes pour la gestion des utilisateurs par l'admin
 router.put('/update-user/:userId',auth, updateUser); // Modifier un utilisateur par l'admin
 router.delete('/delete-user/:userId',auth, deleteUser); // Supprimer un utilisateur par l'admin
 router.get('/users',auth, getAllUsers); // Obtenir la liste de tous les utilisateurs par l'admin
 
-//gérer admins 
-// Route de création d'un nouvel admin
-router.post('/add-admin',auth, addAdmin);
+
 
 module.exports = router;
