@@ -4,7 +4,7 @@ const { validationResult } = require("express-validator");
 
 // consulter la liste de tous les utilisateurs (pour l'admin)
 exports.getAllUsers = async (req, res) => {
-  try {
+  try { 
     const userProfiles = await UserProfile.find();
     res.status(200).json(User);
     if (UserProfile.length < 1) {

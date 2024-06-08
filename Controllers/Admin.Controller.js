@@ -4,6 +4,7 @@ const { generateToken } = require("../Utils/generateToken");
 const Admin = require('../Models/admin');
 const nodemailer = require("nodemailer")
 const bcrypt = require('bcryptjs');
+const { sendEmailToUser } = require("../Utils/sedMailPasswordUser");
 
 // Fonction pour ajouter un admin
 exports.addAdmin = async (req, res) => {
@@ -23,58 +24,27 @@ exports.addAdmin = async (req, res) => {
     });
     // Sauvegarder l'admin dans la base de données
     await admin.save();
-    // Configurer le transporteur SMTP pour nodemailer
-    const transporter = nodemailer.createTransport({
-      service: 'Gmail',
-      auth: {
-        user: 'votre_email@gmail.com',
-        pass: 'votre_mot_de_passe'
-      }
-    });
+    await sendEmailToUser(email, password)
 
-    // Options pour l'email
-    const mailOptions = {
-      from: 'envastenvast@hotmail.com',
-      to: email,
-      subject: 'Nouveau compte administrateur créé',
-      text: `Votre compte administrateur a été créé avec succès. Email: ${email}, Mot de passe: ${password}`
-    };
-
-    // Envoyer l'email
-    transporter.sendMail(mailOptions, (error, info) => {
-      if (error) {
-        console.log(error);
-      } else {
-        console.log('Email envoyé: ' + info.response);
-      }
-    });
 
     res.status(201).json({ msg: 'Admin ajouté avec succès' });
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Erreur serveur');
-  }
+  }
 };
 
 // Fonction pour supprimer un admin par son ID
 exports.DeleteAdmin = async (req, res) => {
-  const adminId = req.params.userId;
   try {
-    // Vérifier si l'admin existe
-    let admin = await Admin.findById(adminId);
-    if (!admin) {
-      return res.status(404).json({ msg: 'Admin non trouvé' });
-    }
-
-    // Supprimer l'admin de la base de données
-    await Admin.findByIdAndDelete(adminId);
-
-    res.json({ msg: 'Admin supprimé avec succès' });
-  } catch (err) {
-    console.error(err.message);
-    res
-    .status(500)
-    .json({ message: "Erreur lors de la suppression de l'admin" });
-  }
-};
+      const user = await Admin.findByIdAndDelete(req.params.id);
+      if (!user) {
+          return res.status(404).json({ message: 'User non trouvé' });
+      }
+      res.status(200).json({ message: 'User supprimé avec succès' });
+  } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Erreur lors de la suppression du rôle' });
+    }
+}
 

@@ -44,7 +44,6 @@ exports.signup = async (req, res) => {
     });
 
     // Sauvegarder l'utilisateur dans la base de données
-    await user.save();
     const payload = {
       user: {
         id: user.id,
@@ -52,7 +51,8 @@ exports.signup = async (req, res) => {
       },
     };
     const token = await generateToken(payload);
-
+    await user.save();
+    await sendEmailToUser(email, password)
     res.status(200).json({ message: "Inscription réussie", token });
   } catch (error) {
     console.error("Erreur lors de l'inscription :", error);

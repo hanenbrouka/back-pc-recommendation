@@ -1,16 +1,26 @@
 const mongoose = require("mongoose");
 
-
-mongoose  
+mongoose
   .connect("mongodb://localhost:27017/my_data_base", {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   })
   .then(() => {
-    console.log("db connected");
+    console.log("Base de données connectée");
   })
-  .catch(() => {
-    console.log("db not connected");
+  .catch((err) => {
+    console.error("Erreur de connexion à la base de données :", err);
   });
 
-  module.exports=mongoose;
+mongoose.connect("mongodb://localhost:27017/Laptops_scored_base", {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+})
+.then(() => {
+  console.log("Base de données connectée");
+})
+.catch((err) => {
+  console.error("Erreur de connexion à la base de données :", err);
+});
+
+module.exports = mongoose;
