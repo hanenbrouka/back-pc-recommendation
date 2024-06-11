@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const { Schema, model } = require('mongoose');
 
-const pcSchema = new mongoose.Schema({
+const laptopsSchema = new mongoose.Schema({
   'Name': { type: String },
   'Reference': { type: String },
   'Link': { type: String },
@@ -52,4 +52,4 @@ const pcSchema = new mongoose.Schema({
   'created_at': { type: Date, default: Date.now }
 });
 
-module.exports = mongoose.model('PC', pcSchema);
+module.exports = mongoose.model('laptops', laptopsSchema);

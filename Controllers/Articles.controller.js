@@ -4,7 +4,7 @@ const PC = require("../Models/Laptops");
 // Consulter la liste de tous les PCs
 exports.getAllPCs = async (req, res) => {
   try {
-    const pcs = await PC.find();
+    const laptops = await laptops.find();
     if (pcs.length < 1) {
       res.status(404).json({ msg: "Aucun PC trouvé" });
     } else {
@@ -20,15 +20,15 @@ exports.getAllPCs = async (req, res) => {
 
 // Modifier un PC
 exports.updatePC = async (req, res) => {
-  const pcId = req.params.id;
+  const laptopId = req.params.id;
   try {
-    let pc = await PC.findById(pcId);
-    if (!pc) {
+    let laptops = await laptops.findById(laptopId);
+    if (!laptops) {
       return res.status(404).json({ message: "PC non trouvé" });
     }
 
-    pc = await PC.findByIdAndUpdate(pcId, req.body, { new: true });
-    res.status(200).json({ message: "PC mis à jour avec succès", pc });
+    laptops = await laptops.findByIdAndUpdate(laptopId, req.body, { new: true });
+    res.status(200).json({ message: "PC mis à jour avec succès", laptops });
   } catch (error) {
     console.error("Erreur lors de la mise à jour du PC :", error);
     res.status(500).json({ message: "Erreur lors de la mise à jour du PC" });
@@ -37,14 +37,14 @@ exports.updatePC = async (req, res) => {
 
 // Supprimer un PC
 exports.deletePC = async (req, res) => {
-  const pcId = req.params.id;
+  const laptopId = req.params.id;
   try {
-    const pc = await PC.findById(pcId);
-    if (!pc) {
+    const laptops = await laptops.findById(pcId);
+    if (!laptops) {
       return res.status(404).json({ message: "PC non trouvé" });
     }
 
-    await PC.findByIdAndDelete(pcId);
+    await PC.findByIdAndDelete(laptopId);
     res.status(200).json({ message: "PC supprimé avec succès" });
   } catch (error) {
     console.error("Erreur lors de la suppression du PC :", error);
