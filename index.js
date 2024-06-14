@@ -30,3 +30,4 @@ app.use('/api/admin',require("./Router/adminRouter"));
 app.use("/api/user", require("./Router/authRouter"));
 app.use("/api/profile", require("./Router/profilRouter"));
 app.use('/api/articles', require("./Router/pcRouter") );
+app.use('/api/Newsletter', require("./Router/newsletterRouter") );

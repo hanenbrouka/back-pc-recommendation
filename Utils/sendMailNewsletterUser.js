@@ -1,6 +1,6 @@
 const nodemailer = require("nodemailer")
 
-const sendResetPasswordEmail = async (email, token) => {
+const sendMailNewsletter = async (email, token) => {
   try {
     const transporter = nodemailer.createTransport({
       service: "hotmail",
@@ -102,5 +102,6 @@ const sendResetPasswordEmail = async (email, token) => {
 };
 
 
-module.exports = {  sendResetPasswordEmail   }
 
+
+module.exports = { sendMailNewsletter: sendMailNewsletter}
