@@ -2,6 +2,7 @@ const Newsletter = require("../Models/Newsletter");
 const { validationResult } = require("express-validator");
 const { sendMailNewsletter } = require("../Utils/sendMailNewsletterUser");
 const { sendBulkMail } = require("../Utils/sendNotifMail");
+const message = require("../Models/message");
 
 exports.inscritNewsletter = async (req, res) => {
   const errors = validationResult(req);
@@ -47,5 +48,31 @@ exports.sendAdminNotification = async (req, res) => {
   } catch (error) {
     console.error("Erreur lors de l'envoi des notifications :", error);
     res.status(500).json({ message: "Erreur lors de l'envoi des notifications" });
+  }
+};
+exports.getAllEmailNews = async (req, res) => {
+  try { 
+    const mailNews = await Newsletter.find();
+    
+    res.status(200).json(mailNews);
+    
+  } catch (error) {
+    console.error("Erreur lors de la récupération des utilisateurs :", error);
+    res
+      .status(500)
+      .json({ message: "Erreur lors de la récupération des utilisateurs" });
+  }
+};
+exports.getAllMessageNews = async (req, res) => {
+  try { 
+    const messageNews = await message.find();
+    
+    res.status(200).json(messageNews);
+    
+  } catch (error) {
+    console.error("Erreur lors de la récupération des utilisateurs :", error);
+    res
+      .status(500)
+      .json({ message: "Erreur lors de la récupération des utilisateurs" });
   }
 };
