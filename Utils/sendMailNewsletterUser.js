@@ -4,17 +4,23 @@ const sendMailNewsletter = async (email, token) => {
   try {
     const transporter = nodemailer.createTransport({
       service: "hotmail",
+      port:587,
+      secure: false, // true for 465, false for other ports
+
       auth: {
         user: "envastenvast@hotmail.com",
         pass: "azerty123",
       },
+      tls: {
+        rejectUnauthorized: false
+    }
     });
 
     // Define email content
     const mailOptions = {
       from: " envastenvast@hotmail.com  ",
       to: email,
-      subject: "Password Recovery",
+      subject: "enregistrer a newsletter",
       html: `
       <!DOCTYPE html>
       <html lang="en">
@@ -104,4 +110,4 @@ const sendMailNewsletter = async (email, token) => {
 
 
 
-module.exports = { sendMailNewsletter: sendMailNewsletter}
+module.exports = { sendMailNewsletter}

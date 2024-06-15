@@ -1,6 +1,7 @@
 const Newsletter = require("../Models/Newsletter");
 const { validationResult } = require("express-validator");
-const { sendMailNewsletter } = require("../Utils/sedMailPasswordUser");
+const { sendMailNewsletter } = require("../Utils/sendMailNewsletterUser");
+const { sendBulkMail } = require("../Utils/sendNotifMail");
 
 exports.inscritNewsletter = async (req, res) => {
   const errors = validationResult(req);
@@ -28,5 +29,23 @@ exports.inscritNewsletter = async (req, res) => {
   } catch (error) {
     console.error("Erreur lors de l'inscription :", error);
     res.status(500).json({ message: "Erreur lors de l'inscription" });
+  }
+};
+
+exports.sendAdminNotification = async (req, res) => {
+  const { subject, body } = req.body;
+
+  try {
+    // Récupérer tous les e-mails des utilisateurs inscrits
+    const subscribers = await Newsletter.find().select('email -_id');
+    const emails = subscribers.map(subscriber => subscriber.email);
+
+    // Envoyer des e-mails en masse
+    await sendBulkMail(emails, subject, body);
+
+    res.status(200).json({ message: "Notifications envoyées avec succès" });
+  } catch (error) {
+    console.error("Erreur lors de l'envoi des notifications :", error);
+    res.status(500).json({ message: "Erreur lors de l'envoi des notifications" });
   }
 };
