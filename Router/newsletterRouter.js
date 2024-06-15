@@ -6,7 +6,7 @@ const {
 const router = express.Router();
 
 // Route pour la réinitialisation du mot de passe
-router.post("/inscrit_newsletter",inscritNewsletter);
+router.post("/inscritNewsletter",inscritNewsletter);
 router.post('/admin/send-notifications', sendAdminNotification);
 router.get('/admin/getAllMailNews', getAllEmailNews);
 router.get('/admin/getAllMessageNews', getAllMessageNews);
