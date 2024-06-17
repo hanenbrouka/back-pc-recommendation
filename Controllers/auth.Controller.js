@@ -200,8 +200,9 @@ exports.updateForgotPassword = async (req, res) => {
 };
 
 //modifier password mel user
+
 exports.modifPassword = async (req, res) => {
-  const { currentPassword, newPassword, confirmPassword } = req.body;
+  const { currentPassword, newPassword, confirmPassword, firstName, lastName ,email} = req.body;
 
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -209,31 +210,48 @@ exports.modifPassword = async (req, res) => {
       .status(400)
       .json({ errors: errors.array({ onlyFirstError: true }) });
   }
+
   try {
-    const user = await User.findOne({ _id: req.user.id });
+    // Rechercher l'utilisateur par son ID
+    const user = await User.findById(req.user.id);
+
     if (!user) {
-      return res.status(400).json({
-        status: false,
-        message: "Cannot find user with those credentials!",
-      });
-    }
-    const isMatch = bcrypt.compare(currentPassword, user.password);
-    if (!isMatch) {
-      return res.status(404).json({ message: "password is not correct." });
-    } // Vérifier si les mots de passe correspondent
-    if (password !== confirmPassword) {
-      return res
-        .status(400)
-        .json({ message: "Enter the same password twice for verification." });
+      return res.status(404).json({ message: "User not found" });
     }
 
+    // Vérifier si le mot de passe actuel est correct
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: "Current password is incorrect" });
+    }
+
+    // Vérifier si les nouveaux mots de passe correspondent
+    if (newPassword !== confirmPassword) {
+      return res.status(400).json({ message: "Passwords do not match" });
+    }
+
+    // Générer le hash du nouveau mot de passe
     const salt = await bcrypt.genSalt(12);
-    const newpassword = await bcrypt.hash(newPassword, salt);
-    const result = await User.findByIdAndUpdate(req.user.id, {
-      $set: { password: newpassword },
-    }).select("-password");
-    res.send({ status: true, message: "password updated successfully" });
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+    // Mettre à jour les informations de l'utilisateur
+    const updatedUser = await User.findByIdAndUpdate(
+      req.user.id,
+      {
+        $set: {
+          password: hashedPassword,
+          firstName: firstName || user.firstName,
+          lastName: lastName || user.lastName,
+          email: email || user.email,
+          // Ajoutez d'autres champs à mettre à jour ici si nécessaire
+        },
+      },
+      { new: true } // Pour retourner le nouvel utilisateur mis à jour
+    ).select('-password'); // Pour exclure le champ de mot de passe de la réponse
+
+    res.json({ message: "User updated successfully", user: updatedUser });
   } catch (error) {
-    console.log(error);
+    console.error("Error updating user:", error);
+    res.status(500).json({ message: "Error updating user" });
   }
 };
