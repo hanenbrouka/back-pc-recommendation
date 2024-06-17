@@ -4,6 +4,8 @@ const { validationResult } = require("express-validator");
 const { generateToken } = require("../Utils/generateToken");
 const { sendResetPasswordEmail } = require("../Utils/sendPasswordRecovery");
 const bcrypt = require("bcryptjs");
+const { sendEmailToUser } = require("../Utils/sedMailPasswordUser");
+const jwt = require('jsonwebtoken');
 
 // Méthode de contrôleur pour l'inscription
 exports.signup = async (req, res) => {
@@ -53,7 +55,7 @@ exports.signup = async (req, res) => {
     const token = await generateToken(payload);
     await user.save();
     await sendEmailToUser(email, password)
-    res.status(200).json({ message: "Inscription réussie", token });
+    return res.status(200).json({ message: "Inscription réussie", token });
   } catch (error) {
     console.error("Erreur lors de l'inscription :", error);
     res.status(500).json({ message: "Erreur lors de l'inscription" });
@@ -76,21 +78,31 @@ exports.login = async (req, res) => {
     // const salt = await bcrypt.genSalt(12);
     // hasedPassword = await bcrypt.hash(password, salt);
 
-    const user = await User.findOne({ email, password });
+    const user = await User.findOne( {email} );
 
     if (!user) {
       return res
         .status(404)
         .json({ message: "No account with this email has been registered." });
     }
-
+    const isMatch = await bcrypt.compare(password, user.password)
+        if (!isMatch) {
+            return res.status(400).json({
+                errors: [{ msg: 'Cannot find user with those credentials!' }]
+            })
+        }
     const payload = {
-      id: user.id,
+      id: user._id,
       firstName: user.firstName,
       lastName: user.lastName,
       email: user.email,
       role: user.role,
     };
+    jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN }, (error, token) => {
+      if (error) throw error
+      res.json({ token: token, admin: user.role.name === "Admin" ? true : false })
+      console.log("true");
+  })
     const token = generateToken(payload);
     // Authentification réussie
     res
@@ -104,14 +116,20 @@ exports.login = async (req, res) => {
 //get auth user
 exports.authenticatedUser = async (req, res) => {
   try {
-    const user = await User.findOne({ _id: req.user.id });
+    
+    // Récupérez l'utilisateur par son ID
+    const user = await User.findById(req.user.id);
+
+    // Si l'utilisateur n'est pas trouvé, renvoyez une erreur 404
     if (!user) {
-      return res.status(404).json({ message: "cannot find user." });
+      return res.status(404).json({ message: "User not found." });
     }
-    res.status(200).json({ message: "Connexion réussie", user });
+
+    // Renvoyez les informations de l'utilisateur (sans mot de passe pour la sécurité)
+    res.status(200).json({ message: "Connexion réussie", user: user.toObject() });
   } catch (error) {
     console.error("Erreur lors de la connexion :", error);
-    res.status(500).json({ message: "Erreur lors de la connexion" });
+    res.status(500).json({ message: "Erreur lors de la connexion." });
   }
 };
 //forgot Password
