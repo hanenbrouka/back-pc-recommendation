@@ -20,7 +20,7 @@ const sendEmailToUser = async (email, password) => {
     });
     // Définir les informations de l'e-mail
     const mailOptions = {
-      from: 'hanenbrouka25@gmail.com', // Remplacez par votre adresse e-mail
+      from: 'tragedela@gmail.com', // Remplacez par votre adresse e-mail
       to: email, // Adresse e-mail de l'utilisateur
       subject: 'Détails de connexion',
       html: `<h1>Bienvenue en tant qu'Admin</h1>
@@ -44,4 +44,4 @@ const sendEmailToUser = async (email, password) => {
   }
 }
 
-module.exports = { sendEmailToUser: sendEmailToUser }
+module.exports = {  sendEmailToUser }

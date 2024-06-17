@@ -11,6 +11,7 @@ module.exports = async (req, res, next) => {
     if (!token) {
       return res.status(401).json({ msg: 'Token not found or invalid! Access denied' });
     }
+    
 
     // Vérifier et décoder le token
     const decryptedToken = await verifyToken(token);
