@@ -1,5 +1,4 @@
 const User = require("../Models/User");
-const auth = require("../Middlewares/auth");
 const { validationResult } = require("express-validator");
 const { generateToken } = require("../Utils/generateToken");
 const { sendResetPasswordEmail } = require("../Utils/sendPasswordRecovery");
@@ -77,8 +76,7 @@ exports.login = async (req, res) => {
 
     // const salt = await bcrypt.genSalt(12);
     // hasedPassword = await bcrypt.hash(password, salt);
-
-    const user = await User.findOne( {email} );
+    const user = await User.findOne({ email });
 
     if (!user) {
       return res
@@ -86,23 +84,26 @@ exports.login = async (req, res) => {
         .json({ message: "No account with this email has been registered." });
     }
     const isMatch = await bcrypt.compare(password, user.password)
-        if (!isMatch) {
-            return res.status(400).json({
-                errors: [{ msg: 'Cannot find user with those credentials!' }]
-            })
-        }
+    if (!isMatch) {
+      return res.status(400).json({
+        errors: [{ msg: 'Cannot find user with those credentials!' }]
+      })
+    }
     const payload = {
-      id: user._id,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      email: user.email,
-      role: user.role,
+      user: {
+        id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        role: user.role,
+      }
     };
+    
     jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN }, (error, token) => {
       if (error) throw error
       res.json({ token: token, admin: user.role.name === "Admin" ? true : false })
       console.log("true");
-  })
+    })
     const token = generateToken(payload);
     // Authentification réussie
     res
@@ -116,9 +117,9 @@ exports.login = async (req, res) => {
 //get auth user
 exports.authenticatedUser = async (req, res) => {
   try {
-    
+
     // Récupérez l'utilisateur par son ID
-    const user = await User.findById(req.user.id);
+    const user = await User.findById(req.user._id);
 
     // Si l'utilisateur n'est pas trouvé, renvoyez une erreur 404
     if (!user) {
@@ -201,20 +202,23 @@ exports.updateForgotPassword = async (req, res) => {
 
 //modifier password mel user
 
-exports.modifPassword = async (req, res) => {
-  const { currentPassword, newPassword, confirmPassword, firstName, lastName ,email} = req.body;
+exports.modifierInfoUser = async (req, res) => {
+  const { currentPassword, newPassword, confirmPassword, firstName, lastName, email } = req.body;
 
+  // Vérifier les erreurs de validation
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return res
-      .status(400)
-      .json({ errors: errors.array({ onlyFirstError: true }) });
+    return res.status(400).json({ errors: errors.array({ onlyFirstError: true }) });
   }
 
   try {
+    // Vérifier que req.user est défini
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ message: "Unauthorized: user information is missing" });
+    }
+
     // Rechercher l'utilisateur par son ID
     const user = await User.findById(req.user.id);
-
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
@@ -255,3 +259,4 @@ exports.modifPassword = async (req, res) => {
     res.status(500).json({ message: "Error updating user" });
   }
 };
+

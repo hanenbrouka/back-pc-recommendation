@@ -30,7 +30,7 @@ const userSchema = new mongoose.Schema(
       type: String,
       enum: ["admin", "user", "superAdmin"], // Liste des rôles autorisés
       default: "user", // Rôle par défaut
-    },
+    }
   },
   { timestamps: true }
 );
