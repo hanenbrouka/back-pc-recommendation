@@ -70,5 +70,34 @@ async function deleteLaptop(id) {
     await client.close();
   }
 }
+async function getLaptopsByPriceRange(minPrice, maxPrice) {
+  try {
+    await client.connect();
+    const database = client.db(dbName);
 
-module.exports = { getLaptopsFromCollections, updateLaptop, deleteLaptop };
+    const cG = database.collection('Gaming');
+    const cL = database.collection('Laptops');
+    const cP = database.collection('Laptops PRO');
+    const cU = database.collection('Ultrabook');
+
+    const filter = { price: { $gte: minPrice, $lte: maxPrice } };
+
+    const laptopsGaming = await cG.find(filter).toArray();
+    const laptopsLaptops = await cL.find(filter).toArray();
+    const laptopsLaptopsPro = await cP.find(filter).toArray();
+    const laptopsUltrabook = await cU.find(filter).toArray();
+
+    const laptopsByCategory = {
+      Gaming: laptopsGaming,
+      Laptops: laptopsLaptops,
+      "Laptops PRO": laptopsLaptopsPro,
+      Ultrabook: laptopsUltrabook
+    };
+
+    return laptopsByCategory;
+  } finally {
+    await client.close();
+  }
+}
+
+module.exports = { getLaptopsFromCollections, updateLaptop, deleteLaptop, getLaptopsByPriceRange };

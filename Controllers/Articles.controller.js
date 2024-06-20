@@ -1,6 +1,6 @@
 
 
-const { getLaptopsFromCollections, updateLaptop, deleteLaptop  } = require('../config/db');
+const { getLaptopsFromCollections, updateLaptop, deleteLaptop   } = require('../config/db');
 //get
 exports.getAllPCs = async (req, res) => {
   try {
@@ -42,3 +42,4 @@ exports.deletePC = async (req, res) => {
     return res.status(500).json({ message: "Erreur lors de la suppression du PC" });
   }
 };
+
